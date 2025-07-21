@@ -2,8 +2,8 @@
 
 # utils/model_utils.py
 import torch
-from dressing_in_order_main.models import create_model
-from dressing_in_order_main.options.test_options import TestOptions
+from dressing-in-order-main.models import create_model
+from dressing-in-order-main.options.test_options import TestOptions
 
 _dior_model = None
 

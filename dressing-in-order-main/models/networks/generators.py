@@ -4,8 +4,45 @@ import math
 import torch.nn.functional as F
 import random
 from models.networks.base_networks import *
-import os
+import os 
+from models.base_model import BaseModel
+from models.networks.base_networks import ResnetGenerator
+import torch
 
+class Resnet9blocksGenerator(BaseModel):
+    def __init__(self, opt):
+        super(Resnet9blocksGenerator, self).__init__()
+        self.opt = opt
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+        self.model = ResnetGenerator(
+            input_nc=opt.input_nc,
+            output_nc=opt.output_nc,
+            ngf=opt.ngf if hasattr(opt, 'ngf') else 64,
+            norm_type=opt.norm_type,
+            use_dropout=opt.use_dropout if hasattr(opt, 'use_dropout') else False,
+            n_blocks=9
+        ).to(self.device)
+
+    def set_input(self, input_data):
+        self.real_A = input_data['A'].to(self.device)  # Person image
+        self.real_B = input_data.get('B', None)  # Optional: ground truth clothing
+        self.image_paths = input_data.get('A_paths', None)
+
+    def forward(self):
+        self.fake_B = self.model(self.real_A)
+
+    def optimize_parameters(self):
+        # In inference, we just do forward pass
+        with torch.no_grad():
+            self.forward()
+
+    def __call__(self, input_tensor):
+        self.set_input({'A': input_tensor})
+        self.optimize_parameters()
+        return self.fake_B
+    
+    
 class BaseGenerator(nn.Module):
     def __init__(self, img_nc=3, kpt_nc=18, ngf=64, latent_nc=256, style_nc=64, n_human_parts=8, n_downsampling=2, n_style_blocks=4, norm_type='instance', relu_type='relu'):
         super(BaseGenerator, self).__init__()
@@ -177,5 +214,21 @@ class DIORv1Generator(BaseGenerator):
         fake = self.to_rgb(out)
         return fake
     
+
+class Resnet9blocksGenerator(BaseModel):
+    def __init__(self, opt):
+        super(Resnet9blocksGenerator, self).__init__()
+        # Example network definition using Resnet9Blocks
+        self.model = ResnetGenerator(
+            input_nc=opt.input_nc,
+            output_nc=opt.output_nc,
+            ngf=64,
+            norm_type='instance',
+            use_dropout=False,
+            n_blocks=9
+        )
+
+    def forward(self, input):
+        return self.model(input)
 
 

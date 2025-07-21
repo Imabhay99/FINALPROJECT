@@ -2,9 +2,18 @@ import os
 import torch
 from collections import OrderedDict
 from abc import ABC, abstractmethod
-from . import networks
 from tensorboardX import SummaryWriter
 import shutil
+# Delay import to avoid circular import
+networks = None
+
+def get_networks():
+    global networks
+    if networks is None:
+        from . import networks as nw
+        networks = nw
+    return networks
+
 
 class BaseModel(ABC):
     """This class is an abstract base class (ABC) for models.

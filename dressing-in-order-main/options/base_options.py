@@ -15,6 +15,8 @@ class BaseOptions():
     def __init__(self):
         """Reset the class; indicates the class hasn't been initailized"""
         self.initialized = False
+        self.norm_type = 'batch'
+        self.relu_type = 'relu'
 
     def initialize(self, parser):
         """Define the common options that are used in both training and test."""

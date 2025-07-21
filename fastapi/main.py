@@ -1,11 +1,16 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from routes import cloth_routes
 from config.settings import settings
+from routes.dependencies import validate_api_key  # Add this import
 import os
+import uvicorn
 
-app = FastAPI(title="Virtual Clothing Try-On API")
+app = FastAPI(title="Fashion Generation API",
+              description="Virtual try-on and outfit generation service",
+              version="1.0.0",
+              openapi_url="/api/openapi.json" if settings.DEBUG else None)
 
 # Create directories
 os.makedirs(settings.STATIC_DIR, exist_ok=True)
@@ -22,12 +27,21 @@ app.add_middleware(
 )
 
 # Include routes
-app.include_router(cloth_routes.router, prefix="/api/v1/clothes", tags=["clothes"])
+app.include_router(
+    cloth_routes.router, 
+    prefix="/api/v1/clothes", 
+    tags=["clothes"], 
+    dependencies=[Depends(validate_api_key)]  # Now this will work
+)
 
 # Serve static files
 app.mount("/static", StaticFiles(directory=settings.STATIC_DIR), name="static")
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
-
+    uvicorn.run(
+        "main:app",
+        host=settings.HOST,
+        port=settings.PORT,
+        reload=settings.DEBUG,
+        workers=settings.WORKERS
+    )

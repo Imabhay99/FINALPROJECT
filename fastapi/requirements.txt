@@ -1,0 +1,25 @@
+fastapi==0.109.1
+uvicorn[standard]==0.27.0
+motor==3.3.2
+pydantic==2.6.1
+pydantic-settings==2.1.0
+python-multipart==0.0.6
+cloudinary==1.37.0
+python-dotenv==1.0.0
+requests==2.31.0
+aiofiles==23.2.1
+python-magic==0.4.27
+numpy==1.26.3  # Keep consistent with model
+opencv-python-headless==4.9.0.80  # Headless version for CPU
+
+
+# fastapi==0.109.1
+# uvicorn[standard]==0.27.0
+# motor==3.3.2
+# pydantic==2.6.1
+# pydantic-settings==2.1.0
+# python-multipart==0.0.6
+# cloudinary==1.37.0
+# requests==2.31.0
+# aiofiles==23.2.1
+# python-magic-bin==0.4.14

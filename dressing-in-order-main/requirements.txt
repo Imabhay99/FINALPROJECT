@@ -1,0 +1,15 @@
+# CPU-only PyTorch and dependencies
+torch==2.1.2
+torchvision==0.16.2
+numpy==1.26.3
+opencv-python-headless==4.9.0.80
+scikit-image==0.22.0
+scipy==1.11.4
+tqdm==4.66.1
+dominate==2.8.0
+visdom==0.2.4
+wandb==0.16.2
+gdown==5.1.0
+pillow==10.2.0
+matplotlib==3.8.2
+

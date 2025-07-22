@@ -72,15 +72,25 @@ def define_E(input_nc, output_nc, netE, ngf=64, n_downsample=3, norm_type='none'
         net = ADGANEncoder(input_nc, output_nc, ngf=ngf, n_downsample=n_downsample, norm_type='none', relu_type=relu_type, frozen_flownet=frozen_flownet)
     return init_net(net, init_type, init_gain, gpu_ids)
 
-def define_G(input_nc, output_nc, ngf, latent_nc, style_nc, n_downsampling=2, n_style_blocks=4, n_human_parts=8, netG='adgan', norm='instance', relu_type='relu', init_type='normal', init_gain=0.02, gpu_ids=[], **kwargs):
+def define_G(img_nc, kpt_nc, style_nc, ngf, latent_nc, 
+             n_downsampling=2, n_style_blocks=4, n_human_parts=8, 
+             netG='adgan', norm='instance', relu_type='relu', 
+             init_type='normal', init_gain=0.02, gpu_ids=[], **kwargs):
+
     Generator = find_generator_using_name(netG)
-    # import pdb; pdb.set_trace()
+
     net = Generator(
-            img_nc=3, kpt_nc=input_nc, ngf=ngf, latent_nc=latent_nc, style_nc=style_nc,
-            n_human_parts=n_human_parts, 
-            n_downsampling=n_downsampling, n_style_blocks=n_style_blocks, 
-            norm_type=norm, relu_type=relu_type, **kwargs
-            )
+        img_nc=img_nc,
+        kpt_nc=kpt_nc,
+        style_nc=style_nc,
+        ngf=ngf,
+        latent_nc=latent_nc,
+        n_blocks=9,  # or pass this in kwargs
+        norm_type=norm,
+        relu_type=relu_type,
+        **kwargs
+    )
+    
     return init_net(net, init_type, init_gain, gpu_ids)
 
 def define_D(input_nc, ndf, netD, n_layers_D=3, norm='batch', use_dropout=True, use_sigmoid=False, init_type='normal', init_gain=0.02, gpu_ids=[]):

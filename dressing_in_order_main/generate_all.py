@@ -65,6 +65,7 @@ from datasets import create_dataset
 from models import create_model
 
 
+
 def generate_all():
     opt = TestOptions().parse()   # get training options
     if opt.square:

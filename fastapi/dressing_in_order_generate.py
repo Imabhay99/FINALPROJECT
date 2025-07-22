@@ -9,7 +9,7 @@ from config.settings import settings
 from inference import load_model, run_inference
 from utils.image_utils import save_upload_file
 
-# Load the model
+# Load the model - this should now use the updated paths
 model = load_model()
 
 async def generate_tryon_result(
@@ -17,6 +17,7 @@ async def generate_tryon_result(
     user_image_path: str,
     pose_image_path: str
 ) -> str:
+
     try:
         # Download cloth image
         response = requests.get(cloth_image_url)

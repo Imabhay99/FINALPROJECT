@@ -8,20 +8,31 @@ import os
 from models.base_model import BaseModel
 from models.networks.base_networks import ResnetGenerator
 import torch
+from dressing_in_order_main.models.networks import generators
+
+# Monkey-patch the ResnetGenerator to match the expected parameters
+OriginalResnetGenerator = generators.ResnetGenerator
 
 class Resnet9blocksGenerator(nn.Module):
-    def __init__(self, input_nc, output_nc, ngf=64, norm_type='batch', ...):
+    def __init__(self, img_nc, kpt_nc, style_nc, ngf=64, norm_type='batch', 
+                 use_dropout=False, n_blocks=9, padding_type='reflect', 
+                 relu_type='relu', use_attn=False, latent_nc=256, opt=None):
         super(Resnet9blocksGenerator, self).__init__()
+        self.img_nc = img_nc
+        self.kpt_nc = kpt_nc
+        self.style_nc = style_nc
+        self.latent_nc = latent_nc
         self.opt = opt
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         self.model = ResnetGenerator(
-            input_nc=opt.input_nc,
-            output_nc=opt.output_nc,
-            ngf=opt.ngf if hasattr(opt, 'ngf') else 64,
-            norm_type=opt.norm_type,
-            use_dropout=opt.use_dropout if hasattr(opt, 'use_dropout') else False,
-            n_blocks=9
+            input_nc=img_nc,          # typically 3 for RGB
+            output_nc=img_nc,         # usually same as input channels
+            ngf=ngf,
+            use_dropout=use_dropout,
+            n_blocks=n_blocks,
+            padding_type=padding_type,
+            relu_type=relu_type
         ).to(self.device)
 
     def set_input(self, input_data):
@@ -215,20 +226,22 @@ class DIORv1Generator(BaseGenerator):
         return fake
     
 
-# class Resnet9blocksGenerator(BaseModel):
-#     def __init__(self, opt):
-#         super(Resnet9blocksGenerator, self).__init__()
-#         # Example network definition using Resnet9Blocks
-#         self.model = ResnetGenerator(
-#             input_nc=opt.input_nc,
-#             output_nc=opt.output_nc,
-#             ngf=64,
-#             norm_type='instance',
-#             use_dropout=False,
-#             n_blocks=9
-#         )
-
-#     def forward(self, input):
-#         return self.model(input)
-
-
+class PatchedResnetGenerator(OriginalResnetGenerator):
+    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=None, 
+                 use_dropout=False, n_blocks=6, padding_type='reflect', n_downsampling=2, **kwargs):
+        # Filter out unexpected arguments
+        filtered_kwargs = {k: v for k, v in kwargs.items() 
+                          if k in ['norm_type', 'relu_type', 'use_attention']}
+        
+        # Call original constructor with only expected parameters
+        super().__init__(
+            input_nc=input_nc,
+            output_nc=output_nc,
+            ngf=ngf,
+            norm_layer=norm_layer,
+            use_dropout=use_dropout,
+            n_blocks=n_blocks,
+            padding_type=padding_type,
+            n_downsampling=n_downsampling
+        )
+generators.ResnetGenerator = PatchedResnetGenerator

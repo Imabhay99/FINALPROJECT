@@ -5,7 +5,7 @@ import base64
 import cv2
 import numpy as np
 from PIL import Image
-from fastapi import UploadFile
+from fastapi import UploadFile, HTTPException
 from config.settings import settings
 
 async def save_upload_file(upload_file: UploadFile, prefix: str = "", directory: str = None) -> str:

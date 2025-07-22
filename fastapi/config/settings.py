@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "cloth_visually_try"
 
     # Model Checkpoints
-    MODEL_CHECKPOINT_PATH: str = "./dressing-in-order-main/checkpoints/latest_net_G.pth"
+    MODEL_CHECKPOINT_PATH: str = "./dressing_in_order_main/checkpoints/latest_net_G.pth"
     CLOTH_MODEL_PATH: Optional[str] = None
     SEGMENTATION_MODEL_PATH: Optional[str] = None
 

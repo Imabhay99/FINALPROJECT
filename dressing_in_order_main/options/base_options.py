@@ -24,6 +24,10 @@ class BaseOptions():
         parser.add_argument('--norm_type', type=str, default='batch')
         parser.add_argument('--relu_type', type=str, default='relu')
         parser.add_argument('--n_kpts', type=int, default=18)
+        parser.add_argument('--use_dropout', action='store_true', help='enable dropout')
+        parser.add_argument('--padding_type', type=str, default='reflect', 
+                            choices=['reflect', 'replicate', 'zero'], 
+                            help='padding type for convolution layers')
 
         parser.add_argument('--n_human_parts', type=int, default=8, help='number of human body parts')
         parser.add_argument('--dataroot', type=str, default="data", help='path to img')

@@ -5,13 +5,77 @@ import numpy as np
 import cv2
 from config.settings import settings
 
-# Add the model directory to Python path
-model_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dressing-in-order-main'))
-if model_dir not in sys.path:
-    sys.path.insert(0, model_dir)
+# --- FIRST: Add the model directory to Python path ---
+# Get the current directory of this script
+current_dir = os.path.dirname(os.path.abspath(__file__))
 
-# Import the model
-from models.dior_model import DIORModel
+# Calculate the path to the model directory
+model_dir = os.path.abspath(os.path.join(current_dir, 'dressing_in_order_main'))
+
+# Add to Python path if it exists
+if os.path.exists(model_dir):
+    if model_dir not in sys.path:
+        sys.path.insert(0, model_dir)
+        print(f"Added to sys.path: {model_dir}")
+else:
+    raise ImportError(f"Model directory not found at {model_dir}")
+
+# --- SECOND: Import ONLY the generators module for patching ---
+try:
+    # Try to import only the generators module
+    from dressing_in_order_main.models.networks import generators
+    print("Successfully imported generators")
+except ImportError as e:
+    print(f"Import failed: {str(e)}")
+    # Try alternative import approach
+    try:
+        from dressing_in_order_main.models.networks import generators
+        print("Successfully imported generators using direct path")
+    except ImportError:
+        print("All import attempts failed")
+        raise
+
+# --- THIRD: Apply the patch BEFORE importing DIORModel ---
+print("Patching ResnetGenerator...")
+OriginalResnetGenerator = generators.ResnetGenerator
+
+class PatchedResnetGenerator(OriginalResnetGenerator):
+    def __init__(self, input_nc, output_nc, ngf=64, norm_layer=None, 
+                 use_dropout=False, n_blocks=6, padding_type='reflect', n_downsampling=2, **kwargs):
+        # Filter out unexpected arguments
+        filtered_kwargs = {k: v for k, v in kwargs.items() 
+                          if k in ['norm_type', 'relu_type', 'use_attention']}
+        
+        # Call original constructor with only expected parameters
+        super().__init__(
+            input_nc=input_nc,
+            output_nc=output_nc,
+            ngf=ngf,
+            norm_layer=norm_layer,
+            use_dropout=use_dropout,
+            n_blocks=n_blocks,
+            padding_type=padding_type,
+            n_downsampling=n_downsampling
+        )
+
+# Apply the patch to the generators module
+generators.ResnetGenerator = PatchedResnetGenerator
+print("ResnetGenerator patched successfully")
+
+# --- FOURTH: Now import DIORModel AFTER patching ---
+try:
+    # Now import DIORModel after patching
+    from dressing_in_order_main.models.dior_model import DIORModel
+    print("Successfully imported DIORModel")
+except ImportError as e:
+    print(f"DIORModel import failed: {str(e)}")
+    # Try alternative import approach
+    try:
+        from dressing_in_order_main.models.dior_model import DIORModel
+        print("Successfully imported DIORModel using direct path")
+    except ImportError:
+        print("DIORModel import failed")
+        raise
 
 # Create a comprehensive mock options object with dynamic attribute handling
 class MockOptions:
@@ -63,7 +127,15 @@ class MockOptions:
         
         # Add the missing attribute from the error
         self.n_style_blocks = 0  # Default value
-    
+        
+        # Add parameters that match the ResnetGenerator signature
+        self.norm_type = 'instance'
+        self.relu_type = 'leakyrelu'
+        self.use_dropout = False
+        self.padding_type = 'reflect'
+        self.n_downsampling = 2
+        self.n_blocks = 9
+        
     def __getattr__(self, name):
         """Dynamically handle any missing attributes"""
         # Provide default values for common attribute patterns

@@ -16,15 +16,45 @@ import cv2, random, imageio
         
 class DIORBaseModel(BaseModel):
     def __init__(self, opt):
-        BaseModel.__init__(self, opt)
+        super().__init__(opt)  # Preferred over BaseModel.__init__(self, opt)
+        
         self.n_human_parts = opt.n_human_parts
         self.n_style_blocks = opt.n_style_blocks
-        # init_models
-        self._init_models(opt)
-        
-        # loss
+        self.isTrain = getattr(opt, 'isTrain', True)  # Ensure this exists
+
+        # Loss setup if training
         if self.isTrain:
             self._init_loss(opt)
+        
+        self._init_models(opt)
+
+        # Optional configs
+        opt.norm_type = getattr(opt, 'norm_type', 'batch')
+        opt.relu_type = getattr(opt, 'relu_type', 'relu')
+        opt.use_dropout = getattr(opt, 'use_dropout', False)
+        opt.padding_type = getattr(opt, 'padding_type', 'reflect')
+
+        self.netG = networks.define_G(
+            input_nc=opt.n_kpts,
+            output_nc=3,
+            ngf=opt.ngf,
+            latent_nc=opt.ngf * (2 ** 2),
+            style_nc=opt.style_nc,
+            n_style_blocks=opt.n_style_blocks,
+            n_human_parts=opt.n_human_parts,
+            netG=opt.netG,
+            norm=opt.norm_type,
+            relu_type=opt.relu_type,
+            init_type=opt.init_type,
+            init_gain=opt.init_gain,
+            gpu_ids=self.gpu_ids,
+            use_dropout=opt.use_dropout,
+            padding_type=opt.padding_type
+        )
+
+
+
+    
             
     def modify_commandline_options(parser, is_train):
         parser.add_argument('--loss_coe_rec', type=float, default=2, help='n resnet transferring blocks in encoders')
@@ -67,9 +97,10 @@ class DIORBaseModel(BaseModel):
         self.netVGG = networks.define_tool_networks(tool='vgg', load_ckpt_path="", gpu_ids=opt.gpu_ids)
         
         # netG
-        self.netG = networks.define_G(input_nc=opt.n_kpts, output_nc=3, ngf=opt.ngf, latent_nc=opt.ngf * (2 ** 2), 
+        self.netG = networks.define_G(  img_nc=3,  kpt_nc=opt.n_kpts, ngf=opt.ngf,        
+                                      latent_nc=opt.ngf * (2 ** 2), 
                                       style_nc=opt.style_nc,
-                                      n_style_blocks=opt.n_style_blocks, n_human_parts=opt.n_human_parts, netG=opt.netG, 
+                                      n_style_blocks=opt.n_style_blocks, netG=opt.netG, 
                                       norm=opt.norm_type, relu_type=opt.relu_type,
                                       init_type=opt.init_type, init_gain=opt.init_gain, gpu_ids=self.gpu_ids)
        

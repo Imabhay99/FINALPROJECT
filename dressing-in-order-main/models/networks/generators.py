@@ -9,8 +9,8 @@ from models.base_model import BaseModel
 from models.networks.base_networks import ResnetGenerator
 import torch
 
-class Resnet9blocksGenerator(BaseModel):
-    def __init__(self, opt):
+class Resnet9blocksGenerator(nn.Module):
+    def __init__(self, input_nc, output_nc, ngf=64, norm_type='batch', ...):
         super(Resnet9blocksGenerator, self).__init__()
         self.opt = opt
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -42,7 +42,7 @@ class Resnet9blocksGenerator(BaseModel):
         self.optimize_parameters()
         return self.fake_B
     
-    
+
 class BaseGenerator(nn.Module):
     def __init__(self, img_nc=3, kpt_nc=18, ngf=64, latent_nc=256, style_nc=64, n_human_parts=8, n_downsampling=2, n_style_blocks=4, norm_type='instance', relu_type='relu'):
         super(BaseGenerator, self).__init__()
@@ -215,20 +215,20 @@ class DIORv1Generator(BaseGenerator):
         return fake
     
 
-class Resnet9blocksGenerator(BaseModel):
-    def __init__(self, opt):
-        super(Resnet9blocksGenerator, self).__init__()
-        # Example network definition using Resnet9Blocks
-        self.model = ResnetGenerator(
-            input_nc=opt.input_nc,
-            output_nc=opt.output_nc,
-            ngf=64,
-            norm_type='instance',
-            use_dropout=False,
-            n_blocks=9
-        )
+# class Resnet9blocksGenerator(BaseModel):
+#     def __init__(self, opt):
+#         super(Resnet9blocksGenerator, self).__init__()
+#         # Example network definition using Resnet9Blocks
+#         self.model = ResnetGenerator(
+#             input_nc=opt.input_nc,
+#             output_nc=opt.output_nc,
+#             ngf=64,
+#             norm_type='instance',
+#             use_dropout=False,
+#             n_blocks=9
+#         )
 
-    def forward(self, input):
-        return self.model(input)
+#     def forward(self, input):
+#         return self.model(input)
 
 

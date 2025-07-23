@@ -5,7 +5,10 @@ from routes import cloth_routes
 from config.settings import settings
 from routes.dependencies import validate_api_key  # Add this import
 import os
+import sys
 import uvicorn
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'dressing_in_order_main')))
+
 
 app = FastAPI(title="Fashion Generation API",
               description="Virtual try-on and outfit generation service",

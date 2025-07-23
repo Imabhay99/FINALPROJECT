@@ -154,7 +154,7 @@ class BaseModel(ABC):
         if not self.isTrain or not opt.continue_train:
             if os.path.exists(self.tb_dir):
                 shutil.rmtree(self.tb_dir)
-            os.mkdir(self.tb_dir)
+            os.makedirs(self.tb_dir, exist_ok=True)
         self.image_dir = os.path.join(self.tb_dir, "images")
         os.makedirs(self.image_dir, exist_ok=True)
         self.writer = SummaryWriter(self.tb_dir) 

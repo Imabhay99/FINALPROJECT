@@ -3,6 +3,7 @@ from .generators import *
 from .vgg import *
 from .gfla import PoseFlowNet, ResDiscriminator
 import importlib
+from . import generators
 
 def find_generator_using_name(model_name):
     """Import the module "models/[model_name]_model.py".
@@ -67,10 +68,26 @@ def define_tool_networks(tool, load_ckpt_path="", gpu_ids=[], init_type='kaiming
     
     return init_net(net, gpu_ids=gpu_ids, do_init_weight=False)
 
-def define_E(input_nc, output_nc, netE, ngf=64, n_downsample=3, norm_type='none', relu_type='relu', frozen_flownet=True, init_type='normal', init_gain=0.02, gpu_ids=[]):
-    if netE == 'adgan':
-        net = ADGANEncoder(input_nc, output_nc, ngf=ngf, n_downsample=n_downsample, norm_type='none', relu_type=relu_type, frozen_flownet=frozen_flownet)
+def define_E(input_nc, output_nc, netE='resnet_128', ngf=64, norm_type='instance', use_dropout=False,
+             init_type='normal', init_gain=0.02, gpu_ids=[], n_downsample=2, **kwargs):
+    norm_layer = get_norm_layer(norm_type=norm_type)
+
+    if netE is None:
+        netE = 'resnet_128'
+        from .encoders import ResnetEncoder
+        relu_type = kwargs.get('relu_type', 'relu')  # get relu_type if provided
+        net = ResnetEncoder(
+            input_nc, output_nc, ngf,
+            norm_layer=norm_layer,
+            use_dropout=use_dropout,
+            n_downsample=n_downsample,
+            relu_type=relu_type  # pass it to encoder if needed
+        )
+    else:
+        raise NotImplementedError(f'Encoder model [{netE}] not recognized')
+
     return init_net(net, init_type, init_gain, gpu_ids)
+
 
 def define_G(img_nc, kpt_nc, style_nc, ngf, latent_nc, 
              n_downsampling=2, n_style_blocks=4, n_human_parts=8, 
